@@ -6,7 +6,7 @@ import torch.nn.functional as F
 
 # ---- import your model and tokenizer classes ----
 from model_defs import Encoder, Decoder, Seq2Seq, greedy_decode_sentence, beam_search_decode_sentence
-from tokenizer_bpe import BPETokenizer
+from your_tokenizer_file import CharTokenizer  # ✅ using your char-level tokenizer
 
 # -----------------------------
 # 🧠 Paths and setup
@@ -20,51 +20,46 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # -----------------------------
 # 🧩 Load Tokenizers
 # -----------------------------
-urdu_tok = BPETokenizer(
-    vocab_path=os.path.join(MODELS_DIR, "urdu_bpe_vocab.json"),
-    merges_path=os.path.join(MODELS_DIR, "urdu_bpe_merges.txt")
-)
-roman_tok = BPETokenizer(
-    vocab_path=os.path.join(MODELS_DIR, "roman_bpe_vocab.json"),
-    merges_path=os.path.join(MODELS_DIR, "roman_bpe_merges.txt")
-)
+urdu_tok = CharTokenizer()
+urdu_tok.load(os.path.join(MODELS_DIR, "char_urdu"))  # ✅ loads char_urdu_vocab.json
+
+roman_tok = CharTokenizer()
+roman_tok.load(os.path.join(MODELS_DIR, "char_roman"))  # ✅ loads char_roman_vocab.json
 
 # -----------------------------
-# 🧩 Load Specific Checkpoint
+# 🧩 Load specific checkpoint (hardcoded)
 # -----------------------------
-def load_checkpoint():
-    # 💡 Replace this with your actual checkpoint filename
-    ckpt_path = os.path.join(CHECKPOINT_DIR, "best_model_epoch17_bleu94.50.pt")
-
+def load_checkpoint(ckpt_name="best_model_epoch17_bleu94.50.pt"):  # ✅ hardcode your file name here
+    ckpt_path = os.path.join(CHECKPOINT_DIR, ckpt_name)
     if not os.path.exists(ckpt_path):
-        st.error(f"❌ Checkpoint not found: {ckpt_path}")
+        st.error(f"Checkpoint not found: {ckpt_name}")
         st.stop()
 
-    data = torch.load(ckpt_path, map_location=device, weights_only=False)
+    data = torch.load(ckpt_path, map_location=device)
 
-    # Model params (must match training)
-    SRC_PAD = urdu_tok.pad_id
-    TGT_PAD = roman_tok.pad_id
-    EMB_DIM = 256
-    HID_DIM = 512
+    SRC_PAD = urdu_tok.vocab["<pad>"]
+    TGT_PAD = roman_tok.vocab["<pad>"]
+    EMB_DIM = 128
+    HID_DIM = 256
     ENC_LAYERS = DEC_LAYERS = 2
-    DROPOUT = 0.3
+    DROPOUT = 0.2
 
     enc = Encoder(input_dim=len(urdu_tok.vocab), emb_dim=EMB_DIM, hid_dim=HID_DIM,
                   n_layers=ENC_LAYERS, dropout=DROPOUT, pad_idx=SRC_PAD)
     dec = Decoder(output_dim=len(roman_tok.vocab), emb_dim=EMB_DIM,
-                  enc_hid_dim=HID_DIM, dec_hid_dim=HID_DIM,
-                  n_layers=DEC_LAYERS, dropout=DROPOUT, pad_idx=TGT_PAD)
+                  enc_hid_dim=HID_DIM, dec_hid_dim=HID_DIM, n_layers=DEC_LAYERS,
+                  dropout=DROPOUT, pad_idx=TGT_PAD)
 
-    model = Seq2Seq(enc, dec, enc_hid_dim=HID_DIM,
-                    dec_hid_dim=HID_DIM, dec_n_layers=DEC_LAYERS).to(device)
-    model.load_state_dict(data["model_state"], strict=False)
+    model = Seq2Seq(enc, dec, enc_hid_dim=HID_DIM, dec_hid_dim=HID_DIM, dec_n_layers=DEC_LAYERS).to(device)
+    model.load_state_dict(data["model_state"])
     model.eval()
     return model
 
+
 @st.cache_resource
 def get_model():
-    return load_checkpoint()
+    return load_checkpoint("best_model_epoch20_bleu95.24.pt")  # ✅ replace with your chosen file
+
 
 model = get_model()
 
