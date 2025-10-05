@@ -1,1 +1,10 @@
 /data/
+/models/seq2seq_checkpoints/best_model_epoch11_bleu91.69.pt  
+/models/seq2seq_checkpoints/best_model_epoch13_bleu93.49.pt  
+/models/seq2seq_checkpoints/best_model_epoch16_bleu94.28.pt  
+/models/seq2seq_checkpoints/best_model_epoch20_bleu95.24.pt  
+/models/seq2seq_checkpoints/best_model_epoch8_bleu91.02.pt
+/models/seq2seq_checkpoints/best_model_epoch12_bleu92.50.pt  
+/models/seq2seq_checkpoints/best_model_epoch15_bleu93.79.pt  
+/models/seq2seq_checkpoints/best_model_epoch7_bleu90.19.pt   
+/models/seq2seq_checkpoints/best_model_epoch9_bleu91.57.pt
