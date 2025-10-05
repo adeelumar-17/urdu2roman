@@ -29,7 +29,7 @@ roman_tok.load(os.path.join(MODELS_DIR, "char_roman"))  # ✅ loads char_roman_v
 # -----------------------------
 # 🧩 Load specific checkpoint (hardcoded)
 # -----------------------------
-def load_checkpoint(ckpt_name="best_model_epoch17_bleu94.50.pt"):  # ✅ hardcode your file name here
+def load_checkpoint(ckpt_name="best_model_epoch9_bleu91.57.pt"):  # ✅ hardcode your file name here
     ckpt_path = os.path.join(CHECKPOINT_DIR, ckpt_name)
     if not os.path.exists(ckpt_path):
         st.error(f"Checkpoint not found: {ckpt_name}")
