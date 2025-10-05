@@ -6,7 +6,7 @@ import torch.nn.functional as F
 
 # ---- import your model and tokenizer classes ----
 from model_defs import Encoder, Decoder, Seq2Seq, greedy_decode_sentence, beam_search_decode_sentence
-from your_tokenizer_file import CharTokenizer  # ✅ using your char-level tokenizer
+from tokenizer_bpe import CharTokenizer  # ✅ using your char-level tokenizer
 
 # -----------------------------
 # 🧠 Paths and setup
