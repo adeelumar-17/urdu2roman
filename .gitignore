@@ -8,3 +8,5 @@
 /models/seq2seq_checkpoints/best_model_epoch15_bleu93.79.pt  
 /models/seq2seq_checkpoints/best_model_epoch7_bleu90.19.pt   
 /models/seq2seq_checkpoints/best_model_epoch9_bleu91.57.pt
+myenv/
+__pycache__/

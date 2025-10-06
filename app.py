@@ -3,6 +3,7 @@ import streamlit as st
 import torch
 import os
 import torch.nn.functional as F
+import time
 
 # ---- import your model and tokenizer classes ----
 from model_defs import Encoder, Decoder, Seq2Seq, greedy_decode_sentence, beam_search_decode_sentence
@@ -29,16 +30,15 @@ roman_tok.load(os.path.join(MODELS_DIR, "char_roman"))  # ✅ loads char_roman_v
 # -----------------------------
 # 🧩 Load specific checkpoint (hardcoded)
 # -----------------------------
-def load_checkpoint(ckpt_name="best_model_epoch9_bleu91.57.pt"):  # ✅ hardcode your file name here
-    ckpt_path = os.path.join(CHECKPOINT_DIR, ckpt_name)
-    if not os.path.exists(ckpt_path):
-        st.error(f"Checkpoint not found: {ckpt_name}")
-        st.stop()
+def load_checkpoint(filename):
+    ckpt_path = os.path.join(CHECKPOINT_DIR, filename)
 
-    data = torch.load(ckpt_path, map_location=device)
+    # ✅ explicitly disable weights_only mode
+    data = torch.load(ckpt_path, map_location=device, weights_only=False)
 
     SRC_PAD = urdu_tok.vocab["<pad>"]
     TGT_PAD = roman_tok.vocab["<pad>"]
+
     EMB_DIM = 128
     HID_DIM = 256
     ENC_LAYERS = DEC_LAYERS = 2
@@ -51,9 +51,16 @@ def load_checkpoint(ckpt_name="best_model_epoch9_bleu91.57.pt"):  # ✅ hardcode
                   dropout=DROPOUT, pad_idx=TGT_PAD)
 
     model = Seq2Seq(enc, dec, enc_hid_dim=HID_DIM, dec_hid_dim=HID_DIM, dec_n_layers=DEC_LAYERS).to(device)
-    model.load_state_dict(data["model_state"])
+
+    # Some Kaggle checkpoints save directly as state_dict, others inside dict
+    if "model_state" in data:
+        model.load_state_dict(data["model_state"])
+    else:
+        model.load_state_dict(data)
+
     model.eval()
     return model
+
 
 
 @st.cache_resource
@@ -81,10 +88,21 @@ if st.button("Translate 🚀"):
                 output = greedy_decode_sentence(user_input, model, urdu_tok, roman_tok)
             else:
                 output = beam_search_decode_sentence(user_input, model, urdu_tok, roman_tok, beam_width=4)
+
+        # ✅ Typing animation effect
+        placeholder = st.empty()
+        typed_text = ""
+        for ch in output:
+            typed_text += ch
+            placeholder.markdown(f"### Roman Urdu Output:\n> {typed_text}▌")
+            time.sleep(0.03)  # adjust typing speed (lower = faster)
+
+        # ✅ Final static version (remove cursor)
+        placeholder.markdown(f"### Roman Urdu Output:\n> {typed_text}")
         st.success("✅ Translation complete!")
-        st.markdown(f"### Roman Urdu Output:\n> {output}")
     else:
         st.warning("Please enter Urdu text to translate.")
+
 
 st.markdown("---")
 st.caption("Built with ❤️ using PyTorch + Streamlit")
